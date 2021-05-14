@@ -1,0 +1,36 @@
+[package]
+name = "twat"
+version = "1.0.0"
+authors = ["Barry Corrigan <b.j.corrigan@gmail.com>"]
+description = "TWitter And Telegram bot"
+readme = "README.md"
+license = "GPL-3.0-or-later"  # https://spdx.org/licenses/
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# color-eyre = "0"
+# tracing = { version = "0", features = ["attributes"] }
+# tracing-subscriber = "0"
+# tracing-error = "0"
+clap = "2"
+# serde = { version = "1", features = ["derive"] }
+# config = { version = "0", features = ["hjson"] }  # also supports ini, yaml
+# termcolor = "1"
+# dialoguer = "0"
+# fuzzy-matcher = "0"  # fuzzy string-matching
+# tabwriter = "1"  # tab-aligned printing
+# regex = "1"
+# cmd_lib = "0"
+# float-cmp = "0"
+# maplit = "1"
+# auto_enums = "0"  # return multiple types from the same fn
+# derive_builder = "0"
+# wyz = "0"  # myrrlyn's utils
+# derivative = "2"
+# derive_more = "0"
+# fasteval = "0"  # calculator language
+
+[dev-dependencies]
+pretty_assertions = "0"
+indoc = "1"
+criterion = "0"
