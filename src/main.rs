@@ -2,11 +2,14 @@
 extern crate clap;
 extern crate tbot;
 
-use clap::{App, Arg};
-use tbot::prelude::*;
+mod config;
 
+use clap::{App, Arg};
+use clap::value_t;
+use tbot::prelude::*;
+use tbot::Bot;
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
     let matches = App::new("Twat ")
         .version("0.1")
         .author("Barry Corrigan <b.j.corrigan@gmail.com>")
@@ -20,9 +23,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .takes_value(true))
         .get_matches();
 
-    let mut bot = tbot::from_env!("BOT_TOKEN").event_loop();
+    let cfg_file = Box::leak(value_t!(matches, "config", String).unwrap_or_else(|_| "./config.ron".to_string()).into_boxed_str() );
 
-    Ok(())
+    let config = config::parse(cfg_file).unwrap_or_else(|error| {
+        eprintln!("Couldn't parse the config: {:#?}", error);
+        std::process::exit(1);
+    });
+
+    let bot = Bot::new(config.telegram.bot_token.to_string()).event_loop();
+
+    bot.polling().start().await.unwrap();
+
 }
 
 
