@@ -19,6 +19,7 @@ tokio = { version = "1.6.0", features = ["macros", "sync", "rt-multi-thread"] }
 meval = "0.2"
 serde = { version = "1", features = ["derive"] }
 ron = "0.6"
+egg-mode = "0.15"
 # config = { version = "0", features = ["hjson"] }  # also supports ini, yaml
 # termcolor = "1"
 # dialoguer = "0"
