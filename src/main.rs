@@ -3,6 +3,7 @@ extern crate clap;
 extern crate tbot;
 extern crate egg_mode;
 extern crate yansi;
+extern crate tokio_stream;
 
 mod config;
 mod twitter;
@@ -12,6 +13,13 @@ use clap::value_t;
 use tbot::prelude::*;
 use tbot::Bot;
 use std::io;
+
+use egg_mode::user::TwitterUser;
+use egg_mode::error::Result;
+use egg_mode::cursor::CursorIter;
+
+use tokio_stream::StreamExt;
+
 
 use crate::twitter::Auth;
 
@@ -45,6 +53,28 @@ async fn main() {
 
     //twitter log in
     let twauth = Auth::load(&config).await;
+
+    let t:Result<Vec<TwitterUser>> = egg_mode::user::friends_ids(twauth.user_id, &twauth.token)
+            .take(10)
+            .map_ok(|r| r.response)
+            .try_collect::<Vec<_>>()
+            .await;
+
+
+
+    let stream = egg_mode::stream::filter()
+        //.follow()
+        .language(&["en"])
+        .start(&twauth.token);
+        /*.try_for_each(|m| {
+            if let StreamMessage::Tweet(tweet) = m {
+                common::print_tweet(&tweet);
+                println!("──────────────────────────────────────");
+            } else {
+                println!("{:?}", m);
+            }
+            futures::future::ok(())
+        });*/
 
 
     //set up following

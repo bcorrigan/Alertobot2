@@ -16,6 +16,7 @@ license = "GPL-3.0-or-later"  # https://spdx.org/licenses/
 clap = "2"
 tbot = "0.6"
 tokio = { version = "1.6.0", features = ["macros", "sync", "rt-multi-thread"] }
+tokio-stream = "0.1"
 meval = "0.2"
 serde = { version = "1", features = ["derive"] }
 ron = "0.6"
