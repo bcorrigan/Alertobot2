@@ -4,6 +4,7 @@ extern crate tbot;
 extern crate egg_mode;
 extern crate yansi;
 extern crate tokio_stream;
+extern crate futures;
 
 mod config;
 mod twitter;
@@ -12,13 +13,17 @@ use clap::{App, Arg};
 use clap::value_t;
 use tbot::prelude::*;
 use tbot::Bot;
+use tbot::types::parameters::Text;
+use tbot::types::chat::Id;
 use std::io;
 
-use egg_mode::user::TwitterUser;
+use egg_mode::{stream::StreamMessage, user::TwitterUser};
 use egg_mode::error::Result;
 use egg_mode::cursor::CursorIter;
 
 use tokio_stream::StreamExt;
+use futures::TryStreamExt;
+use futures::executor::block_on;
 
 
 use crate::twitter::Auth;
@@ -54,38 +59,30 @@ async fn main() {
     //twitter log in
     let twauth = Auth::load(&config).await;
 
-    let t:Result<Vec<TwitterUser>> = egg_mode::user::friends_ids(twauth.user_id, &twauth.token)
+    let t:Vec<u64> = egg_mode::user::friends_ids(twauth.user_id, &twauth.token)
             .take(10)
             .map_ok(|r| r.response)
             .try_collect::<Vec<_>>()
-            .await;
+            .await.unwrap();
 
+    let tbot = Bot::new(config.telegram.bot_token.to_string());
 
-
-    let stream = egg_mode::stream::filter()
-        //.follow()
+    egg_mode::stream::filter()
+        .follow(&t)
         .language(&["en"])
-        .start(&twauth.token);
-        /*.try_for_each(|m| {
+        .start(&twauth.token)
+        .try_for_each(|m| {
             if let StreamMessage::Tweet(tweet) = m {
-                common::print_tweet(&tweet);
+                twitter::print_tweet(&tweet);
+                block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html("test")).call()).expect("Error writing to telegram");
+                
                 println!("──────────────────────────────────────");
+                //TODO check rules etc here and print to telegram
             } else {
                 println!("{:?}", m);
             }
             futures::future::ok(())
-        });*/
-
-
-    //set up following
-    //https://github.com/egg-mode-rs/egg-mode/blob/master/examples/stream_filter.rs
-
-
-
-    let bot = Bot::new(config.telegram.bot_token.to_string()).event_loop();
-
-    bot.polling().start().await.unwrap();
-
+        }).await.expect("Error with twitter stream");
 }
 
 
