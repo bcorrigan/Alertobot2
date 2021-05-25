@@ -8,6 +8,7 @@ extern crate futures;
 
 mod config;
 mod twitter;
+mod rule;
 
 use clap::{App, Arg};
 use clap::value_t;
@@ -66,6 +67,7 @@ async fn main() {
             .await.unwrap();
 
     let tbot = Bot::new(config.telegram.bot_token.to_string());
+    let rules = &config.rules;
 
     egg_mode::stream::filter()
         .follow(&t)
@@ -74,7 +76,12 @@ async fn main() {
         .try_for_each(|m| {
             if let StreamMessage::Tweet(tweet) = m {
                 twitter::print_tweet(&tweet);
-                block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html("test")).call()).expect("Error writing to telegram");
+                for rule in rules {
+                    if rule.matches(&tweet) { 
+                        block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, tweet.text))).call()).expect("Error writing to telegram");
+                        break;
+                    }
+                }
                 
                 println!("──────────────────────────────────────");
                 //TODO check rules etc here and print to telegram
