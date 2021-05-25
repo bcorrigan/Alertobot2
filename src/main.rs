@@ -69,7 +69,7 @@ async fn main() {
     let tbot = Bot::new(config.telegram.bot_token.to_string());
     let rules = &config.rules;
 
-    egg_mode::stream::filter()
+    let _ = egg_mode::stream::filter()
         .follow(&t)
         .language(&["en"])
         .start(&twauth.token)
@@ -78,7 +78,7 @@ async fn main() {
                 twitter::print_tweet(&tweet);
                 for rule in rules {
                     if rule.matches(&tweet) { 
-                        block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, tweet.text))).call()).expect("Error writing to telegram");
+                        let _ = block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, tweet.text))).call()).map_err(|e| format!("There was a telegram error: {}", e));
                         break;
                     }
                 }
@@ -89,7 +89,7 @@ async fn main() {
                 println!("{:?}", m);
             }
             futures::future::ok(())
-        }).await.expect("Error with twitter stream");
+        }).await.map_err(|e| format!("There was a tweeter error: {}", e));
 }
 
 
