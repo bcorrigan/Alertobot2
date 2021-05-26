@@ -32,10 +32,10 @@ impl Auth {
     async fn load_inner(config:&Config) -> Option<Self> {
         //IMPORTANT: make an app for yourself at apps.twitter.com and get your
         //key/secret into these files; these examples won't work without them
-        let consumer_key = config.twitter.key;
-        let consumer_secret = config.twitter.secret;
+        let consumer_key = &config.twitter.key;
+        let consumer_secret = &config.twitter.secret;
 
-        let con_token = egg_mode::KeyPair::new(consumer_key, consumer_secret);
+        let con_token = egg_mode::KeyPair::new(consumer_key.clone(), consumer_secret.clone());
 
         let mut authcfg = String::new();
         let user_id: u64;

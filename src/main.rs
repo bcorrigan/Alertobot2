@@ -77,8 +77,10 @@ async fn main() {
             if let StreamMessage::Tweet(tweet) = m {
                 twitter::print_tweet(&tweet);
                 for rule in rules {
+                    //TODO why not the full text sometimes? when a RT specifically?
                     if rule.matches(&tweet) { 
-                        let _ = block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, tweet.text))).call()).map_err(|e| format!("There was a telegram error: {}", e));
+                        let _ = block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, tweet.text)))
+                                                            .call()).map_err(|e| format!("There was a telegram error: {}", e));
                         break;
                     }
                 }
@@ -91,5 +93,3 @@ async fn main() {
             futures::future::ok(())
         }).await.map_err(|e| format!("There was a tweeter error: {}", e));
 }
-
-
