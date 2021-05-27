@@ -11,7 +11,8 @@ use regex::Regex;
 pub struct Range {
     start: u32,
     end: u32,
-    excludes: Option<String>,
+    #[serde(with = "serde_regex")]
+    excludes: Option<Regex>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -67,14 +68,7 @@ impl Range {
     fn excludes_present(&self, text: &String) -> bool {
         let test_text = text.to_ascii_lowercase();
         match &self.excludes {
-            Some(excludes) => {
-                for exclude in excludes.split(",").into_iter() {
-                    if test_text.contains(exclude) {
-                        return true;
-                    }
-                }
-                false
-            },
+            Some(excludes) => excludes.is_match(&test_text),
             None => false,
         }
     }
