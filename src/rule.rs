@@ -49,10 +49,8 @@ impl Rule {
             }
 
             if !active_range.excludes_present(&tweet.text) {
-                for rule_str in self.includes.split(',').into_iter() {
-                    if tweet.text.to_ascii_lowercase().contains(rule_str) {
-                        return true;
-                    }
+                if self.includes.is_match(&tweet.text.to_ascii_lowercase()) {
+                    return true;
                 }
             }
         }    
