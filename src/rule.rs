@@ -1,6 +1,11 @@
-use serde::Deserialize;
+//use serde::Deserialize;
 use egg_mode::tweet::Tweet;
 use chrono::{Local, Timelike};
+
+use serde::Deserialize;
+
+use regex::Regex;
+
 
 #[derive(Clone, Deserialize)]
 pub struct Range {
@@ -12,8 +17,10 @@ pub struct Range {
 #[derive(Deserialize, Clone)]
 pub struct Rule {
     name: String,
-    includes: String,
-    excludes: Option<String>,
+    #[serde(with = "serde_regex")]
+    includes: Regex, 
+    #[serde(with = "serde_regex")]
+    excludes: Option<Regex>,
     active_hours: Option<Vec<Range>>,
     active_days: Option<String>,
 }
@@ -21,7 +28,7 @@ pub struct Rule {
 const ALL_DAY_RANGE:Range = Range { start: 0, end: 23, excludes: None };
 
 impl Rule {
-    pub fn matches(&self, tweet: &Tweet) -> bool {
+    pub fn matches(&self, tweet: &Tweet, followed_users:&Vec<u64>) -> bool {
         let hour = Local::now().hour();
 
         if tweet.user.as_ref().unwrap().screen_name == self.name {
@@ -36,6 +43,10 @@ impl Rule {
                 None => &ALL_DAY_RANGE
             };
 
+            //No retweets of users we follow
+            if tweet.retweeted.unwrap_or(false) && followed_users.contains(&tweet.user.as_ref().unwrap().id) {
+                return false;
+            }
 
             if !active_range.excludes_present(&tweet.text) {
                 for rule_str in self.includes.split(',').into_iter() {

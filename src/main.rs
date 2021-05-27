@@ -5,6 +5,8 @@ extern crate egg_mode;
 extern crate yansi;
 extern crate tokio_stream;
 extern crate futures;
+extern crate regex;
+extern crate serde_regex;
 
 mod config;
 mod twitter;
@@ -78,7 +80,7 @@ async fn main() {
                 twitter::print_tweet(&tweet);
                 for rule in rules {
                     //TODO why not the full text sometimes? when a RT specifically?
-                    if rule.matches(&tweet) { 
+                    if rule.matches(&tweet, &t) { 
                         let _ = block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, tweet.text)))
                                                             .call()).map_err(|e| format!("There was a telegram error: {}", e));
                         break;

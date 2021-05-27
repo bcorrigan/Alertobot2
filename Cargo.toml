@@ -20,10 +20,12 @@ tokio-stream = "0.1"
 futures = "0.3"
 meval = "0.2"
 serde = { version = "1", features = ["derive"] }
+serde_regex = "1"
 ron = "0.6"
 egg-mode = { git = "https://github.com/egg-mode-rs/egg-mode.git" }
 yansi = "0.5.0"
 chrono = { version = "0.4", features = ["serde"] }
+regex = "1.5"
 # config = { version = "0", features = ["hjson"] }  # also supports ini, yaml
 # termcolor = "1"
 # dialoguer = "0"
