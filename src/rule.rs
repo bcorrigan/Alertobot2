@@ -1,6 +1,6 @@
 //use serde::Deserialize;
 use egg_mode::tweet::Tweet;
-use chrono::{Local, Timelike};
+use chrono::{Local, Timelike, Datelike};
 
 use serde::Deserialize;
 
@@ -23,7 +23,8 @@ pub struct Rule {
     #[serde(with = "serde_regex")]
     excludes: Option<Regex>,
     active_hours: Option<Vec<Range>>,
-    active_days: Option<String>,
+    #[serde(with = "serde_regex")]
+    active_days: Option<Regex>,
 }
 
 const ALL_DAY_RANGE:Range = Range { start: 0, end: 23, excludes: None };
@@ -31,6 +32,8 @@ const ALL_DAY_RANGE:Range = Range { start: 0, end: 23, excludes: None };
 impl Rule {
     pub fn matches(&self, tweet: &Tweet, followed_users:&Vec<u64>) -> bool {
         let hour = Local::now().hour();
+        let day = Local::now().date().weekday().to_string();
+        let text = tweet.text.to_ascii_lowercase();
 
         if tweet.user.as_ref().unwrap().screen_name == self.name {
             let active_range = match &self.active_hours {
@@ -44,14 +47,24 @@ impl Rule {
                 None => &ALL_DAY_RANGE
             };
 
+            let active_today = match &self.active_days {
+                Some(regex) => regex.is_match(&day),
+                None => true,
+            };
+
             //No retweets of users we follow
             if tweet.retweeted.unwrap_or(false) && followed_users.contains(&tweet.user.as_ref().unwrap().id) {
                 return false;
             }
 
-            if !active_range.excludes_present(&tweet.text) {
-                if self.includes.is_match(&tweet.text.to_ascii_lowercase()) {
-                    return true;
+            if active_today {
+                if !active_range.excludes_present(&text) {
+                    if self.includes.is_match(&text) {
+                        return match &self.excludes {
+                            Some(regex) => regex.is_match(&text),
+                            None => true,
+                        };
+                    }
                 }
             }
         }    
@@ -66,9 +79,8 @@ impl Range {
     }
 
     fn excludes_present(&self, text: &String) -> bool {
-        let test_text = text.to_ascii_lowercase();
         match &self.excludes {
-            Some(excludes) => excludes.is_match(&test_text),
+            Some(excludes) => excludes.is_match(&text),
             None => false,
         }
     }
