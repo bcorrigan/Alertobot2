@@ -5,6 +5,7 @@ use chrono::{Local, Timelike, Datelike};
 use serde::Deserialize;
 
 use regex::Regex;
+use crate::twitter;
 
 
 #[derive(Clone, Deserialize)]
@@ -14,10 +15,15 @@ pub struct Range {
     #[serde(with = "serde_regex")]
     excludes: Option<Regex>,
 }
+#[derive(Clone, Deserialize)]
+pub struct Chat {
+    pub chat: i64,
+}
 
 #[derive(Deserialize, Clone)]
 pub struct Rule {
     name: String,
+    pub chats: Vec<Chat>,
     #[serde(with = "serde_regex")]
     includes: Regex, 
     #[serde(with = "serde_regex")]
@@ -33,7 +39,7 @@ impl Rule {
     pub fn matches(&self, tweet: &Tweet, followed_users:&Vec<u64>) -> bool {
         let hour = Local::now().hour();
         let day = Local::now().date().weekday().to_string();
-        let text = tweet.text.to_ascii_lowercase();
+        let text = twitter::get_text(&tweet).to_ascii_lowercase();
 
         if tweet.user.as_ref().unwrap().screen_name == self.name {
             let active_range = match &self.active_hours {

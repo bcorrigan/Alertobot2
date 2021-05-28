@@ -119,6 +119,15 @@ impl Auth {
     }
 }
 
+//get full text if retweeted
+pub fn get_text(tweet: &egg_mode::tweet::Tweet) -> String {
+    if let Some(ref status) = tweet.retweeted_status {
+        return format!("RT {}: {}", status.user.as_ref().unwrap().screen_name, get_text(status));
+    } else {
+        return tweet.text.clone();
+    }
+}
+
 pub fn print_tweet(tweet: &egg_mode::tweet::Tweet) {
     if let Some(ref user) = tweet.user {
         println!(

@@ -18,6 +18,8 @@ use tbot::prelude::*;
 use tbot::Bot;
 use tbot::types::parameters::Text;
 use tbot::types::chat::Id;
+//use tbot::types::chat::Chat;
+use tbot::types::chat;
 use std::io;
 
 use egg_mode::{stream::StreamMessage, user::TwitterUser};
@@ -79,11 +81,13 @@ async fn main() {
             if let StreamMessage::Tweet(tweet) = m {
                 twitter::print_tweet(&tweet);
                 for rule in rules {
-                    //TODO why not the full text sometimes? when a RT specifically?
+                    //TODO Handle attached media - pictures etc
                     if rule.matches(&tweet, &t) { 
-                        let _ = block_on(tbot.send_message(Id(config.telegram.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, tweet.text)))
+                        for chat in &rule.chats {
+                            //TODO I suppose should try not blocking here...
+                            let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet))))
                                                             .call()).map_err(|e| format!("There was a telegram error: {}", e));
-                        break;
+                        }
                     }
                 }
                 
