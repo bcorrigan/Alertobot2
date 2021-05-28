@@ -12,7 +12,7 @@ use crate::twitter;
 pub struct Range {
     start: u32,
     end: u32,
-    #[serde(with = "serde_regex")]
+    #[serde(with = "serde_regex", default)]
     excludes: Option<Regex>,
 }
 #[derive(Clone, Deserialize)]
@@ -26,10 +26,11 @@ pub struct Rule {
     pub chats: Vec<Chat>,
     #[serde(with = "serde_regex")]
     includes: Regex, 
-    #[serde(with = "serde_regex")]
+    #[serde(with = "serde_regex", default)]
     excludes: Option<Regex>,
+    #[serde(default)]
     active_hours: Option<Vec<Range>>,
-    #[serde(with = "serde_regex")]
+    #[serde(with = "serde_regex", default)]
     active_days: Option<Regex>,
 }
 
