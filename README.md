@@ -155,4 +155,4 @@ etc etc...
 
 - The twitter account being used for the bot, has to follow the accounts mentioned in the rules.
 - For now it just lists raw telegram chat IDs. These can be obtained from bots like @myID on telegram
-- Text strings are lower cased before matching against includes regex so best not to have upper cases in rules
+- Use (?i) case sensitivity flag to toggle case sensitivity in middle of regex
