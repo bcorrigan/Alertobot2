@@ -40,6 +40,7 @@ pub struct TweetInfo<'a> {
     pub day: String,
     pub retweeted: bool,
     pub user: u64,
+    pub rtuser: u64,
     pub screen_name: &'a String,
     pub followed_users: &'a Vec<u64>
 }
@@ -51,39 +52,33 @@ impl Rule {
         let text = twinfo.text.to_ascii_lowercase();
 
         if *twinfo.screen_name == self.name {
-            println!("1");
             let active_range = match &self.active_hours {
                 Some(ranges) => {
                     let active_ranges:Vec<&Range> = ranges.into_iter().filter(|range| range.in_range(twinfo.hour)).collect();
-                    println!("2");
                     match active_ranges.get(0) {
                         Some(range) => *range,
-                        None => { println!("3"); return false},
+                        None => return false,
                     }                    
                 },    
                 None => &ALL_DAY_RANGE
             };
 
             let active_today = match &self.active_days {
-                Some(regex) => { println!("4"); regex.is_match(&twinfo.day) },
+                Some(regex) => regex.is_match(&twinfo.day),
                 None => true,
             };
 
             //No retweets of users we follow
-            if twinfo.retweeted && twinfo.followed_users.contains(&twinfo.user) {
+            if twinfo.retweeted && twinfo.followed_users.contains(&twinfo.rtuser) { //TODO get ultimate user ID!
                 println!("5");
                 return false;
             }
-            println!("6");
             if active_today {
-                println!("7");
                 if !active_range.excludes_present(&text) {
-                    println!("8");
                     if self.includes.is_match(&text) {
-                        println!("9");
                         return match &self.excludes {
-                            Some(regex) => { println!("10"); !regex.is_match(&text)},
-                            None => { println!("11"); true },
+                            Some(regex) => !regex.is_match(&text),
+                            None => true,
                         };
                     }
                 }

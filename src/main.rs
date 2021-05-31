@@ -93,6 +93,7 @@ async fn main() {
                         day: Local::now().date().weekday().to_string(),
                         retweeted: tweet.retweeted.unwrap_or(false),
                         user: tweet.user.as_ref().unwrap().id,
+                        rtuser : twitter::get_root_user(&tweet),
                         screen_name: &tweet.user.as_ref().unwrap().screen_name,
                         followed_users: &t,
                     };

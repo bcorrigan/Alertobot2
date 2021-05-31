@@ -128,6 +128,14 @@ pub fn get_text(tweet: &egg_mode::tweet::Tweet) -> String {
     }
 }
 
+pub fn get_root_user(tweet: &egg_mode::tweet::Tweet) -> u64 {
+    if let Some(ref status) = tweet.retweeted_status {
+        return get_root_user(status);
+    } else {
+        return tweet.user.as_ref().unwrap().id;
+    }
+}
+
 pub fn print_tweet(tweet: &egg_mode::tweet::Tweet) {
     if let Some(ref user) = tweet.user {
         println!(
