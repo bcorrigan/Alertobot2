@@ -119,6 +119,7 @@ async fn main() {
 #[test]
 fn regexx() {
     let rgx = Regex::new("a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston").unwrap();
-    let teststr = "A77 B730 Symington - A78 Monkton - Closure, All lanes closed Northbound https://t.co/v42ucR1Q32 #TSIncident".to_ascii_lowercase();
+    let teststr = "A77 B730 Symington - A78 Monkton - Closure, All lanes closed Northbound https://t.co/v42ucR1Q32 #TSIncident";
+
     println!("Match? {}", rgx.is_match(&teststr));
 }

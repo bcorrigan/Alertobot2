@@ -32,8 +32,8 @@ mod test {
         let mut rule = Rule {
             name: "trafficscotland".to_string(),
             chats: vec![chat],
-            includes: Regex::new("a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston").unwrap(),
-            excludes: Some(Regex::new("safety|careful").unwrap()),
+            includes: Regex::new("(?i)a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston").unwrap(),
+            excludes: Some(Regex::new("(?i)safety|careful").unwrap()),
             active_hours: Some(vec![range]),
             active_days: Some(Regex::new("Mon|Tue|Wed|Thu|Fri").unwrap()),
         };
@@ -43,7 +43,7 @@ mod test {
         let eve_range = Range {
             start: 14,
             end: 18,
-            excludes: Some(Regex::new("southbound|s/b").unwrap()),
+            excludes: Some(Regex::new("(?i)southbound|s/b").unwrap()),
         };
 
         rule.active_hours = Some(vec![eve_range]);
@@ -54,7 +54,7 @@ mod test {
         let excl_range = Range {
             start: 6,
             end: 10,
-            excludes: Some(Regex::new("northbound|n/b").unwrap()),
+            excludes: Some(Regex::new("(?i)northbound|n/b").unwrap()),
         };
 
         rule.active_hours = Some(vec![excl_range]);
@@ -90,7 +90,7 @@ mod test {
         assert!(rule.matches(&tweet));
 
 
-        rule.excludes = Some(Regex::new("symington|monkton").unwrap());
+        rule.excludes = Some(Regex::new("(?i)symington|monkton").unwrap());
 
         //excludes should exclude
         assert!(!rule.matches(&tweet));

@@ -49,8 +49,6 @@ const ALL_DAY_RANGE:Range = Range { start: 0, end: 23, excludes: None };
 
 impl Rule {
     pub fn matches(&self, twinfo:&TweetInfo) -> bool {
-        let text = twinfo.text.to_ascii_lowercase();
-
         if *twinfo.screen_name == self.name {
             let active_range = match &self.active_hours {
                 Some(ranges) => {
@@ -73,10 +71,10 @@ impl Rule {
                 return false;
             }
             if active_today {
-                if !active_range.excludes_present(&text) {
-                    if self.includes.is_match(&text) {
+                if !active_range.excludes_matches(&twinfo.text) {
+                    if self.includes.is_match(&twinfo.text) {
                         return match &self.excludes {
-                            Some(regex) => !regex.is_match(&text),
+                            Some(regex) => !regex.is_match(&twinfo.text),
                             None => true,
                         };
                     }
@@ -93,7 +91,7 @@ impl Range {
         hour>=self.start && hour<=self.end
     }
 
-    fn excludes_present(&self, text: &String) -> bool {
+    fn excludes_matches(&self, text: &String) -> bool {
         match &self.excludes {
             Some(excludes) => excludes.is_match(&text),
             None => false,

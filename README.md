@@ -32,18 +32,18 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston",
+            includes : "(?i)a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston",
             excludes : "safety|careful",
             active_hours : [
                 (
                     start: 6,
                     end: 10,
-                    excludes: "southbound|s/b",
+                    excludes: "(?i)southbound|s/b",
                 ),
                 (
                     start: 14,
                     end: 18,
-                    excludes:"northbound|s/b",
+                    excludes:"(?i)northbound|s/b",
                 )
             ],
             active_days : "Mon|Tue|Wed|Thu|Fri"
@@ -54,8 +54,8 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston",
-            excludes : "safety|careful",
+            includes : "(?i)a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston",
+            excludes : "(?i)safety|careful",
             active_hours : [
                 (
                     start: 10,
@@ -71,7 +71,7 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "kilmarnock|ayrshire|scotstoun|m77[\\D$]|a76[\\D$]|a77[\\D$]",
+            includes : "(?i)kilmarnock|ayrshire|scotstoun|m77[\\D$]|a76[\\D$]|a77[\\D$]",
         ),
         ( 
             name: "BBCScotWeather",
@@ -89,7 +89,7 @@ etc etc...
                 (chat: 1234),
             ],
 
-            includes : "kilmarnock|southcraig|northcraig|galston|loudoun|a77[\\D$]|m77[\\D$]|a76[\\D$]|onthank|wardneuk",
+            includes : "(?i)kilmarnock|southcraig|northcraig|galston|loudoun|a77[\\D$]|m77[\\D$]|a76[\\D$]|onthank|wardneuk",
         ),
         ( 
             name: "AyrshirePolice",
@@ -97,7 +97,7 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "kilmarnock|southcraig|northcraig|galston|loudoun|a77[\\D$]|m77[\\D$]|a76",
+            includes : "(?i)kilmarnock|southcraig|northcraig|galston|loudoun|a77[\\D$]|m77[\\D$]|a76",
         ),
         ( 
             name: "EastAyrshire",
@@ -105,7 +105,7 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "kilmarnock|northcraig|southcraig|galston|loudoun|a77[\\D$]|m77[\\D$]|a76[\\D$]|onthank",
+            includes : "(?i)kilmarnock|northcraig|southcraig|galston|loudoun|a77[\\D$]|m77[\\D$]|a76[\\D$]|onthank",
         ),
         ( 
             name: "PHE_uk",
@@ -113,7 +113,7 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "dashboard has been updated",
+            includes : "Dashboard has been updated",
         ),
         ( 
             name: "metofficeWScot",
@@ -129,7 +129,7 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "\\d\\d'\\||ht|ft",
+            includes : "\\d\\d'\\||HT|FT",
         ),
         ( 
             name: "CelticFC",
@@ -137,7 +137,7 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "half time|ht|ft|full time|kick off|ko",
+            includes : "HT|HT|KO|(?i)full time|kick off",
         ),
         ( 
             name: "RangersFC",
@@ -145,7 +145,7 @@ etc etc...
                 (chat: -123),
                 (chat: 1234),
             ],
-            includes : "half time|ht|ft|full time|kick off|ko",
+            includes : "HT|FT|KO|(?i)full time|kick off",
         )
     ]
 )
