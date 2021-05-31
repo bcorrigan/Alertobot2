@@ -1,5 +1,5 @@
 //use serde::Deserialize;
-use egg_mode::tweet::Tweet;
+
 use chrono::{Local, Timelike, Datelike};
 
 use serde::Deserialize;
@@ -10,10 +10,10 @@ use crate::twitter;
 
 #[derive(Clone, Deserialize)]
 pub struct Range {
-    start: u32,
-    end: u32,
+    pub start: u32,
+    pub end: u32,
     #[serde(with = "serde_regex", default)]
-    excludes: Option<Regex>,
+    pub excludes: Option<Regex>,
 }
 #[derive(Clone, Deserialize)]
 pub struct Chat {
@@ -22,54 +22,68 @@ pub struct Chat {
 
 #[derive(Deserialize, Clone)]
 pub struct Rule {
-    name: String,
+    pub name: String,
     pub chats: Vec<Chat>,
     #[serde(with = "serde_regex")]
-    includes: Regex, 
+    pub includes: Regex, 
     #[serde(with = "serde_regex", default)]
-    excludes: Option<Regex>,
+    pub excludes: Option<Regex>,
     #[serde(default)]
-    active_hours: Option<Vec<Range>>,
+    pub active_hours: Option<Vec<Range>>,
     #[serde(with = "serde_regex", default)]
-    active_days: Option<Regex>,
+    pub active_days: Option<Regex>,
+}
+
+pub struct TweetInfo<'a> {
+    pub text: String,
+    pub hour: u32,
+    pub day: String,
+    pub retweeted: bool,
+    pub user: u64,
+    pub screen_name: &'a String,
+    pub followed_users: &'a Vec<u64>
 }
 
 const ALL_DAY_RANGE:Range = Range { start: 0, end: 23, excludes: None };
 
 impl Rule {
-    pub fn matches(&self, tweet: &Tweet, followed_users:&Vec<u64>) -> bool {
-        let hour = Local::now().hour();
-        let day = Local::now().date().weekday().to_string();
-        let text = twitter::get_text(&tweet).to_ascii_lowercase();
+    pub fn matches(&self, twinfo:&TweetInfo) -> bool {
+        let text = twinfo.text.to_ascii_lowercase();
 
-        if tweet.user.as_ref().unwrap().screen_name == self.name {
+        if *twinfo.screen_name == self.name {
+            println!("1");
             let active_range = match &self.active_hours {
                 Some(ranges) => {
-                    let active_ranges:Vec<&Range> = ranges.into_iter().filter(|range| range.in_range(hour)).collect();
+                    let active_ranges:Vec<&Range> = ranges.into_iter().filter(|range| range.in_range(twinfo.hour)).collect();
+                    println!("2");
                     match active_ranges.get(0) {
                         Some(range) => *range,
-                        None => return false,
+                        None => { println!("3"); return false},
                     }                    
                 },    
                 None => &ALL_DAY_RANGE
             };
 
             let active_today = match &self.active_days {
-                Some(regex) => regex.is_match(&day),
+                Some(regex) => { println!("4"); regex.is_match(&twinfo.day) },
                 None => true,
             };
 
             //No retweets of users we follow
-            if tweet.retweeted.unwrap_or(false) && followed_users.contains(&tweet.user.as_ref().unwrap().id) {
+            if twinfo.retweeted && twinfo.followed_users.contains(&twinfo.user) {
+                println!("5");
                 return false;
             }
-
+            println!("6");
             if active_today {
+                println!("7");
                 if !active_range.excludes_present(&text) {
+                    println!("8");
                     if self.includes.is_match(&text) {
+                        println!("9");
                         return match &self.excludes {
-                            Some(regex) => regex.is_match(&text),
-                            None => true,
+                            Some(regex) => { println!("10"); !regex.is_match(&text)},
+                            None => { println!("11"); true },
                         };
                     }
                 }

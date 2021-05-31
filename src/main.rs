@@ -11,9 +11,11 @@ extern crate serde_regex;
 mod config;
 mod twitter;
 mod rule;
+mod test;
 
 use clap::{App, Arg};
 use clap::value_t;
+use regex::Regex;
 use tbot::prelude::*;
 use tbot::Bot;
 use tbot::types::parameters::Text;
@@ -21,7 +23,9 @@ use tbot::types::chat::Id;
 //use tbot::types::chat::Chat;
 use tbot::types::chat;
 use std::io;
+use crate::rule::TweetInfo;
 
+use chrono::{Local, Timelike, Datelike};
 use egg_mode::{stream::StreamMessage, user::TwitterUser};
 use egg_mode::error::Result;
 use egg_mode::cursor::CursorIter;
@@ -82,7 +86,18 @@ async fn main() {
                 twitter::print_tweet(&tweet);
                 for rule in rules {
                     //TODO Handle attached media - pictures etc
-                    if rule.matches(&tweet, &t) { 
+                    //we construct this because mocking it is a complete pain
+                    let tweetinfo = TweetInfo {
+                        text: twitter::get_text(&tweet),
+                        hour: Local::now().hour(),
+                        day: Local::now().date().weekday().to_string(),
+                        retweeted: tweet.retweeted.unwrap_or(false),
+                        user: tweet.user.as_ref().unwrap().id,
+                        screen_name: &tweet.user.as_ref().unwrap().screen_name,
+                        followed_users: &t,
+                    };
+
+                    if rule.matches(&tweetinfo) { 
                         for chat in &rule.chats {
                             //TODO I suppose should try not blocking here...
                             let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet))))
@@ -98,4 +113,11 @@ async fn main() {
             }
             futures::future::ok(())
         }).await.map_err(|e| format!("There was a tweeter error: {}", e));
+}
+
+#[test]
+fn regexx() {
+    let rgx = Regex::new("a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston").unwrap();
+    let teststr = "A77 B730 Symington - A78 Monkton - Closure, All lanes closed Northbound https://t.co/v42ucR1Q32 #TSIncident".to_ascii_lowercase();
+    println!("Match? {}", rgx.is_match(&teststr));
 }
