@@ -95,5 +95,12 @@ mod test {
         //excludes should exclude
         assert!(!rule.matches(&tweet));
 
+        rule.excludes = None;
+        rule.active_hours = None;
+        rule.active_days = None;
+
+        //should match when pm no restrictions
+        assert!(rule.matches(&tweet));
+
     }
 }
