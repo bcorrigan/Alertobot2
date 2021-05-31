@@ -70,7 +70,6 @@ impl Rule {
 
             //No retweets of users we follow
             if twinfo.retweeted && twinfo.followed_users.contains(&twinfo.rtuser) { //TODO get ultimate user ID!
-                println!("5");
                 return false;
             }
             if active_today {
