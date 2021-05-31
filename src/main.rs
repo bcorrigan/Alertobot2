@@ -19,6 +19,7 @@ use regex::Regex;
 use tbot::prelude::*;
 use tbot::Bot;
 use tbot::types::parameters::Text;
+use tbot::methods::SendMessage;
 use tbot::types::chat::Id;
 //use tbot::types::chat::Chat;
 use tbot::types::chat;
@@ -99,9 +100,21 @@ async fn main() {
                     };
 
                     if rule.matches(&tweetinfo) { 
+                        if let Some(entities) = &tweet.extended_entities {
+                            for entity in &entities.media {
+                                //send media
+                                let ent_htm = format!("<a href=\"{}\"</a>", entity.media_url);
+                                for chat in &rule.chats {
+                                    
+                                    let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>@{}</b></p>{}" , tweet.user.as_ref().unwrap().screen_name, ent_htm)))
+                                                            .call()).map_err(|e| format!("There was a telegram error: {}", e));
+                                }
+                            } 
+                        }
+
                         for chat in &rule.chats {
                             //TODO I suppose should try not blocking here...
-                            let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet))))
+                            let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(true)
                                                             .call()).map_err(|e| format!("There was a telegram error: {}", e));
                         }
                     }
