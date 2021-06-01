@@ -70,7 +70,7 @@ async fn main() {
     let twauth = Auth::load(&config).await;
 
     let t:Vec<u64> = egg_mode::user::friends_ids(twauth.user_id, &twauth.token)
-            .take(10)
+            .take(100)
             .map_ok(|r| r.response)
             .try_collect::<Vec<_>>()
             .await.unwrap();
