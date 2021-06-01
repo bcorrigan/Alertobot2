@@ -131,8 +131,20 @@ async fn main() {
 
 #[test]
 fn regexx() {
-    let rgx = Regex::new("a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston").unwrap();
-    let teststr = "A77 B730 Symington - A78 Monkton - Closure, All lanes closed Northbound https://t.co/v42ucR1Q32 #TSIncident";
+    let rgx = Regex::new("(?i)a76[\\D$]|irvine|kilmarnock|a77[\\D$]|m77[\\D$]|bellfield|galston").unwrap();
+    let teststr = "UPDATE❗️⌚️07:50
+
+    #M8 roadworks junction 15 to junction 18🚧
+    
+    Slow westbound from J13
+    Eastbound from J22
+    
+    #M77 slow northbound J2 
+    #M74 slow northbound J3A to J1A 
+    
+    @SWTrunkRoads
+     @GlasgowCC";
 
     println!("Match? {}", rgx.is_match(&teststr));
+    //assert!(false);
 }
