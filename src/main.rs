@@ -75,6 +75,8 @@ async fn main() {
             .try_collect::<Vec<_>>()
             .await.unwrap();
 
+    println!("Following {} accounts", t.len());
+
     let tbot = Bot::new(config.telegram.bot_token.to_string());
     let rules = &config.rules;
 
