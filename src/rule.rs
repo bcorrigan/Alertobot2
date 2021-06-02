@@ -54,6 +54,7 @@ impl Rule {
             let active_range = match &self.active_hours {
                 Some(ranges) => {
                     let active_ranges:Vec<&Range> = ranges.into_iter().filter(|range| range.in_range(twinfo.hour)).collect();
+                    println!("RULE: Found {} active ranges for hour {}", active_ranges.len(), twinfo.hour);
                     match active_ranges.get(0) {
                         Some(range) => *range,
                         None => {println!("RULE: No active ranges, rule FALSE"); return false},
