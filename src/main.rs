@@ -88,7 +88,6 @@ async fn main() {
             if let StreamMessage::Tweet(tweet) = m {
                 twitter::print_tweet(&tweet);
                 for rule in rules {
-                    //TODO Handle attached media - pictures etc
                     //we construct this because mocking it is a complete pain
                     let tweetinfo = TweetInfo {
                         text: twitter::get_text(&tweet),
@@ -102,25 +101,33 @@ async fn main() {
                     };
 
                     if rule.matches(&tweetinfo) { 
-                        let mut media_sent = false;
-                        if let Some(entities) = &tweet.extended_entities {
-                            for entity in &entities.media {
-                                //send media
-                                let ent_htm = format!("<a href=\"{}\"</a>", entity.media_url);
-                                println!("RULE: Sending media {}", ent_htm);
-                                for chat in &rule.chats {
-                                    media_sent = true;
-                                    let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>@{}</b></p>{}" , tweet.user.as_ref().unwrap().screen_name, ent_htm)))
-                                                            .call()).map_err(|e| format!("There was a telegram error: {}", e));
-                                }
-                            } 
-                        }
+                        let mut has_media = false;
+                        let mut media_htm = "".to_owned();
 
-                        for chat in &rule.chats {
-                            //TODO I suppose should try not blocking here...
-                            println!("RULE: Sending body to {}", chat.chat);
-                            let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(media_sent)
-                                                            .call()).map_err(|e| format!("There was a telegram error: {}", e));
+                        //need to refetch the tweet here as it doesn't seem to have media entities populated when got from stream
+                        if let Ok(fulltweet) = block_on(egg_mode::tweet::show(tweet.id, &twauth.token)) {
+                            if let Some(entities) = &fulltweet.extended_entities {
+                                for entity in &entities.media {
+                                    //send media
+                                    media_htm.push_str(&format!("<p><a href=\"{}\"</a></p>", entity.media_url));
+                                    println!("RULE: Appending media {}", media_htm);
+                                    has_media=true;
+
+                                } 
+                                if has_media {
+                                   for chat in &rule.chats {
+                                        let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>@{}</b></p>{}" , tweet.user.as_ref().unwrap().screen_name, media_htm)))
+                                                                .call()).map_err(|e| format!("There was a telegram error: {}", e));
+                                    }
+                                }
+                            }
+
+                            for chat in &rule.chats {
+                                //TODO I suppose should try not blocking here...
+                                println!("RULE: Sending body to {}", chat.chat);
+                                let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(has_media)
+                                                                .call()).map_err(|e| format!("There was a telegram error: {}", e));
+                            }
                         }
                     }
                 }
