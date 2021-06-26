@@ -45,6 +45,8 @@ mod test {
             excludes: Some(Regex::new("(?i)safety|careful").unwrap()),
             active_hours: Some(vec![range, range2]),
             active_days: Some(Regex::new("Mon|Tue|Wed|Thu|Fri").unwrap()),
+            include_images:true,
+            webpage_preview:true,
         };
         //it is the right time, the day, it should match
         assert!(rule.matches(&tweet));

@@ -102,35 +102,32 @@ async fn main() {
                     };
 
                     if rule.matches(&tweetinfo) { 
-                        let mut has_media = false;
-                        let mut photos = Vec::new();
-
                         //need to refetch the tweet here as it doesn't seem to have media entities populated when got from stream
                         if let Ok(fulltweet) = block_on(egg_mode::tweet::show(tweet.id, &twauth.token)) {
-
-                            has_media = fulltweet.entities.media.is_some();
-
+                            let has_media = fulltweet.entities.media.is_some();
+                            let webpage_preview = rule.webpage_preview && !has_media;
+                            
                             for chat in &rule.chats {
                                 //TODO I suppose should try not blocking here...
                                 println!("RULE: Sending body to {}", chat.chat);
-                                let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(has_media)
+                                let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(webpage_preview)
                                                                 .call()).map_err(|e| format!("There was a telegram error: {}", e));
                             }
-                            
-                            if let Some(entities) = &fulltweet.extended_entities {
-                                for entity in &entities.media {
-                                    //send media
-                                    let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url.clone()) );
-                                    photos.push(photo);
-
-                                    println!("RULE: Appending media: {}", entity.media_url);
-                                    has_media=true;
-
-                                } 
-                                if has_media {
-                                    let media_group = MediaGroup::PhotosAndVideos(photos);
-                                    for chat in &rule.chats {
-                                        let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
+                            if rule.include_images {
+                                if let Some(entities) = &fulltweet.extended_entities {
+                                    let mut photos = Vec::new();
+                                    for entity in &entities.media {
+                                        //send media
+                                        let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url.clone()) );
+                                        photos.push(photo);
+                                        //TODO videos and documents
+                                        println!("RULE: Appending media: {}", entity.media_url);
+                                    } 
+                                    if has_media {
+                                        let media_group = MediaGroup::PhotosAndVideos(photos);
+                                        for chat in &rule.chats {
+                                            let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
+                                        }
                                     }
                                 }
                             }

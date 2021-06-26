@@ -7,6 +7,7 @@ use serde::Deserialize;
 use regex::Regex;
 use crate::twitter;
 
+fn default_true_value() -> bool {true}
 
 #[derive(Clone, Deserialize)]
 pub struct Range {
@@ -32,6 +33,10 @@ pub struct Rule {
     pub active_hours: Option<Vec<Range>>,
     #[serde(with = "serde_regex", default)]
     pub active_days: Option<Regex>,
+    #[serde(default="default_true_value")]
+    pub include_images: bool,
+    #[serde(default="default_true_value")]
+    pub webpage_preview: bool,
 }
 
 pub struct TweetInfo<'a> {
