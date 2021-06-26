@@ -106,11 +106,17 @@ async fn main() {
                         if let Ok(fulltweet) = block_on(egg_mode::tweet::show(tweet.id, &twauth.token)) {
                             let has_media = fulltweet.entities.media.is_some();
                             let webpage_preview = rule.webpage_preview && !has_media;
-                            
+                            /*
+                            |  wp   |  !hm  |outcome|
+                            | false | true  | false |
+                            | false | false | false |
+                            | true  | false | false |
+                            | true  | true  | true  |
+                            */
                             for chat in &rule.chats {
                                 //TODO I suppose should try not blocking here...
                                 println!("RULE: Sending body to {}", chat.chat);
-                                let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(webpage_preview)
+                                let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(!webpage_preview)
                                                                 .call()).map_err(|e| format!("There was a telegram error: {}", e));
                             }
                             if rule.include_images {
