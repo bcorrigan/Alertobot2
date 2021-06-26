@@ -46,7 +46,7 @@ etc etc...
                     excludes:"(?i)northbound|s/b",
                 )
             ],
-            active_days : "Mon|Tue|Wed|Thu|Fri"
+            active_days : "Mon|Tue|Wed|Thu|Fri",
         ),
         ( 
             name: "trafficscotland",
@@ -62,7 +62,8 @@ etc etc...
                     end: 19,
                 )
             ],
-            active_days : "Sat"
+            active_days : "Sat",
+            include_images: false,
         ),
 
         ( 
@@ -114,6 +115,7 @@ etc etc...
                 (chat: 1234),
             ],
             includes : "Dashboard has been updated",
+            webpage_preview: false,
         ),
         ( 
             name: "metofficeWScot",
@@ -146,6 +148,7 @@ etc etc...
                 (chat: 1234),
             ],
             includes : "HT|FT|KO|(?i)full time|kick off",
+            webpage_preview: false,
         )
     ]
 )
@@ -156,3 +159,5 @@ etc etc...
 - The twitter account being used for the bot, has to follow the accounts mentioned in the rules.
 - For now it just lists raw telegram chat IDs. These can be obtained from bots like @myID on telegram
 - Use (?i) case sensitivity flag to toggle case sensitivity in middle of regex
+- include_images - if this is false for a rule, then any included images in the tweet will not be sent
+- webpage_preview - if this is false, webpage preview on telegram will not be enabled for this rule. Note that webpage_preview is automatically disabled if images are included in the tweet as usually this results in redundant duplication of images.
