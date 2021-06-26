@@ -107,6 +107,9 @@ async fn main() {
 
                         //need to refetch the tweet here as it doesn't seem to have media entities populated when got from stream
                         if let Ok(fulltweet) = block_on(egg_mode::tweet::show(tweet.id, &twauth.token)) {
+
+                            has_media = fulltweet.entities.media.is_some();
+
                             for chat in &rule.chats {
                                 //TODO I suppose should try not blocking here...
                                 println!("RULE: Sending body to {}", chat.chat);
@@ -120,14 +123,14 @@ async fn main() {
                                     let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url.clone()) );
                                     photos.push(photo);
 
-                                    println!("RULE: Appending media..");
+                                    println!("RULE: Appending media: {}", entity.media_url);
                                     has_media=true;
 
                                 } 
                                 if has_media {
                                     let media_group = MediaGroup::PhotosAndVideos(photos);
-                                   for chat in &rule.chats {
-                                       let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
+                                    for chat in &rule.chats {
+                                        let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
                                     }
                                 }
                             }
