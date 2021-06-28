@@ -124,10 +124,10 @@ async fn main() {
                                     let mut photos = Vec::new();
                                     for entity in &entities.media {
                                         //send media
-                                        let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url.clone()) );
+                                        let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url_https.clone()) );
                                         photos.push(photo);
                                         //TODO videos and documents
-                                        println!("RULE: Appending media: {}", entity.media_url);
+                                        println!("RULE: Appending media: {}", entity.media_url_https);
                                     } 
                                     let media_group = MediaGroup::PhotosAndVideos(photos);
                                     for chat in &rule.chats {
