@@ -36,6 +36,8 @@ use tokio_stream::StreamExt;
 use futures::TryStreamExt;
 use futures::executor::block_on;
 
+use std::{thread, time};
+
 
 use crate::twitter::Auth;
 
@@ -120,6 +122,7 @@ async fn main() {
                                                                 .call()).map_err(|e| format!("There was a telegram error: {}", e));
                             }
                             if rule.include_images {
+                                thread::sleep(time::Duration::from_millis(1000));
                                 if let Some(entities) = &fulltweet.extended_entities {
                                     let mut photos = Vec::new();
                                     for entity in &entities.media {
