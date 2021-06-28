@@ -129,11 +129,9 @@ async fn main() {
                                         //TODO videos and documents
                                         println!("RULE: Appending media: {}", entity.media_url);
                                     } 
-                                    if has_media {
-                                        let media_group = MediaGroup::PhotosAndVideos(photos);
-                                        for chat in &rule.chats {
-                                            let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
-                                        }
+                                    let media_group = MediaGroup::PhotosAndVideos(photos);
+                                    for chat in &rule.chats {
+                                        let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
                                     }
                                 }
                             }
