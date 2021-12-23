@@ -21,7 +21,7 @@ futures = "0.3"
 meval = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_regex = "1"
-ron = "0.6"
+ron = "0.7"
 egg-mode = { git = "https://github.com/egg-mode-rs/egg-mode.git" }
 yansi = "0.5.0"
 chrono = { version = "0.4", features = ["serde"] }
