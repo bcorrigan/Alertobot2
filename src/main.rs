@@ -70,7 +70,7 @@ async fn main() {
     });
 
     //twitter log in
-    let twauth = Auth::load(&config).await;
+    let mut twauth = Auth::load(&config).await;
 
     let t:Vec<u64> = egg_mode::user::friends_ids(twauth.user_id, &twauth.token)
             .take(100)
@@ -83,72 +83,78 @@ async fn main() {
     let tbot = Bot::new(config.telegram.bot_token.to_string());
     let rules = &config.rules;
 
-    let _ = egg_mode::stream::filter()
-        .follow(&t)
-        .language(&["en"])
-        .start(&twauth.token)
-        .try_for_each(|m| {
-            if let StreamMessage::Tweet(tweet) = m {
-                twitter::print_tweet(&tweet);
-                for rule in rules {
-                    //we construct this because mocking it is a complete pain
-                    let tweetinfo = TweetInfo {
-                        text: twitter::get_text(&tweet),
-                        hour: Local::now().hour(),
-                        day: Local::now().date().weekday().to_string(),
-                        retweeted: tweet.retweeted.unwrap_or(false),
-                        user: tweet.user.as_ref().unwrap().id,
-                        rtuser : twitter::get_root_user(&tweet),
-                        screen_name: &tweet.user.as_ref().unwrap().screen_name,
-                        followed_users: &t,
-                    };
+    loop {
+        let _ = egg_mode::stream::filter()
+            .follow(&t)
+            .language(&["en"])
+            .start(&twauth.token)
+            .try_for_each(|m| {
+                if let StreamMessage::Tweet(tweet) = m {
+                    twitter::print_tweet(&tweet);
+                    for rule in rules {
+                        //we construct this because mocking it is a complete pain
+                        let tweetinfo = TweetInfo {
+                            text: twitter::get_text(&tweet),
+                            hour: Local::now().hour(),
+                            day: Local::now().date().weekday().to_string(),
+                            retweeted: tweet.retweeted.unwrap_or(false),
+                            user: tweet.user.as_ref().unwrap().id,
+                            rtuser : twitter::get_root_user(&tweet),
+                            screen_name: &tweet.user.as_ref().unwrap().screen_name,
+                            followed_users: &t,
+                        };
 
-                    if rule.matches(&tweetinfo) { 
-                        //need to refetch the tweet here as it doesn't seem to have media entities populated when got from stream
-                        if let Ok(fulltweet) = block_on(egg_mode::tweet::show(tweet.id, &twauth.token)) {
-                            let has_media = fulltweet.entities.media.is_some();
-                            let webpage_preview = rule.webpage_preview && !has_media;
-                            /*
-                            |  wp   |  !hm  |outcome|
-                            | false | true  | false |
-                            | false | false | false |
-                            | true  | false | false |
-                            | true  | true  | true  |
-                            */
-                            for chat in &rule.chats {
-                                //TODO I suppose should try not blocking here...
-                                println!("RULE: Sending body to {}", chat.chat);
-                                let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(!webpage_preview)
-                                                                .call()).map_err(|e| format!("There was a telegram error: {}", e));
-                            }
-                            if rule.include_images {
-                                thread::sleep(time::Duration::from_millis(1000));
-                                if let Some(entities) = &fulltweet.extended_entities {
-                                    let mut photos = Vec::new();
-                                    for entity in &entities.media {
-                                        //send media
-                                        let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url_https.clone()) );
-                                        photos.push(photo);
-                                        //TODO videos and documents
-                                        println!("RULE: Appending media: {}", entity.media_url_https);
-                                    } 
-                                    let media_group = MediaGroup::PhotosAndVideos(photos);
-                                    for chat in &rule.chats {
-                                        let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
+                        if rule.matches(&tweetinfo) { 
+                            //need to refetch the tweet here as it doesn't seem to have media entities populated when got from stream
+                            if let Ok(fulltweet) = block_on(egg_mode::tweet::show(tweet.id, &twauth.token)) {
+                                let has_media = fulltweet.entities.media.is_some();
+                                let webpage_preview = rule.webpage_preview && !has_media;
+                                /*
+                                |  wp   |  !hm  |outcome|
+                                | false | true  | false |
+                                | false | false | false |
+                                | true  | false | false |
+                                | true  | true  | true  |
+                                */
+                                for chat in &rule.chats {
+                                    //TODO I suppose should try not blocking here...
+                                    println!("RULE: Sending body to {}", chat.chat);
+                                    let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(!webpage_preview)
+                                                                    .call()).map_err(|e| format!("There was a telegram error: {}", e));
+                                }
+                                if rule.include_images {
+                                    thread::sleep(time::Duration::from_millis(1000));
+                                    if let Some(entities) = &fulltweet.extended_entities {
+                                        let mut photos = Vec::new();
+                                        for entity in &entities.media {
+                                            //send media
+                                            let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url_https.clone()) );
+                                            photos.push(photo);
+                                            //TODO videos and documents
+                                            println!("RULE: Appending media: {}", entity.media_url_https);
+                                        } 
+                                        let media_group = MediaGroup::PhotosAndVideos(photos);
+                                        for chat in &rule.chats {
+                                            let _ = block_on(tbot.send_media_group(Id(chat.chat), media_group.clone()).is_notification_disabled(true).call()).map_err(|e| format!("There was a telegram error: {}", e));
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    
+                    println!("──────────────────────────────────────");
+                    //TODO check rules etc here and print to telegram
+                } else {
+                    println!("{:?}", m);
                 }
-                
-                println!("──────────────────────────────────────");
-                //TODO check rules etc here and print to telegram
-            } else {
-                println!("{:?}", m);
-            }
-            futures::future::ok(())
-        }).await.map_err(|e| format!("There was a tweeter error: {}", e));
+                futures::future::ok(())
+            }).await.map_err(|e| format!("There was a tweeter error: {}", e));
+
+            thread::sleep(time::Duration::from_millis(10000));
+            twauth = Auth::load(&config).await;
+            println!("Restarting tweet stream..");
+    }
 }
 
 #[test]
