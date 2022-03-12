@@ -25,15 +25,17 @@ use tbot::types::chat::Id;
 use tbot::types::chat;
 use tbot::types::input_file::{Photo,MediaGroup, PhotoOrVideo};
 use std::io;
+use std::time::Duration;
 use crate::rule::TweetInfo;
 
 use chrono::{Local, Timelike, Datelike};
 use egg_mode::{stream::StreamMessage, user::TwitterUser};
-use egg_mode::error::Result;
+//use egg_mode::error::Result;
 use egg_mode::cursor::CursorIter;
 
 use tokio_stream::StreamExt;
-use futures::TryStreamExt;
+use tokio::time::{Timeout, timeout};
+use futures::stream::TryStreamExt;
 use futures::executor::block_on;
 
 use std::{thread, time};
@@ -82,13 +84,24 @@ async fn main() {
 
     let tbot = Bot::new(config.telegram.bot_token.to_string());
     let rules = &config.rules;
+    let duration = Duration::new(900, 0);
 
     loop {
-        let _ = egg_mode::stream::filter()
+        let fut = egg_mode::stream::filter()
             .follow(&t)
             .language(&["en"])
             .start(&twauth.token)
+            //.timeout(duration)
+            .take_while(|m| m.is_ok())
             .try_for_each(|m| {
+                /*let sm = match m {
+                    Ok(sm) => sm,
+                    Err(e) => {
+                        println!("Timeout detected");
+                        return futures::future::err(e);
+                    },
+                }; */
+
                 if let StreamMessage::Tweet(tweet) = m {
                     twitter::print_tweet(&tweet);
                     for rule in rules {
@@ -149,7 +162,11 @@ async fn main() {
                     println!("{:?}", m);
                 }
                 futures::future::ok(())
-            }).await.map_err(|e| format!("There was a tweeter error: {}", e));
+            }); //.await.map_err(|e| format!("There was a tweeter error: {}", e));
+
+            if let Err(e) = timeout(duration, fut).await {
+                println!("Timed out, restarting..")
+            }
 
             thread::sleep(time::Duration::from_millis(10000));
             twauth = Auth::load(&config).await;
