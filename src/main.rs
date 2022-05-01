@@ -165,7 +165,7 @@ async fn main() {
                     println!("Unknown object:{:?}", m);
                 }
                 //notify systemd watchdog that we were active
-                let _ = notify(true, &[NotifyState::Ready]);
+                let _ = notify(true, &[NotifyState::Watchdog]);
                 futures::future::ok(())
             }); //.await.map_err(|e| format!("There was a tweeter error: {}", e));
 
