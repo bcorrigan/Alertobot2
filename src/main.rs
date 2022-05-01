@@ -7,6 +7,7 @@ extern crate tokio_stream;
 extern crate futures;
 extern crate regex;
 extern crate serde_regex;
+extern crate sd_notify;
 
 mod config;
 mod twitter;
@@ -39,6 +40,8 @@ use futures::stream::TryStreamExt;
 use futures::executor::block_on;
 
 use std::{thread, time};
+
+use sd_notify::{notify, NotifyState};
 
 
 use crate::twitter::Auth;
@@ -159,8 +162,10 @@ async fn main() {
                     println!("──────────────────────────────────────");
                     //TODO check rules etc here and print to telegram
                 } else {
-                    println!("{:?}", m);
+                    println!("Unknown object:{:?}", m);
                 }
+                //notify systemd watchdog that we were active
+                let _ = notify(true, &[NotifyState::Ready]);
                 futures::future::ok(())
             }); //.await.map_err(|e| format!("There was a tweeter error: {}", e));
 

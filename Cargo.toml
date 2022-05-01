@@ -26,6 +26,7 @@ egg-mode = { git = "https://github.com/egg-mode-rs/egg-mode.git" }
 yansi = "0.5.0"
 chrono = { version = "0.4", features = ["serde"] }
 regex = "1.5"
+sd-notify = "0.4.0"
 # config = { version = "0", features = ["hjson"] }  # also supports ini, yaml
 # termcolor = "1"
 # dialoguer = "0"
