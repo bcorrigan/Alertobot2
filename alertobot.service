@@ -1,0 +1,12 @@
+[Unit]
+Description=Alertobot 
+After=network.target
+
+[Service]
+WorkingDirectory=/home/bc/workspace/twat
+ExecStart=/home/bc/workspace/twat/target/release/twat --config=config.ron
+Restart=on-watchdog
+WatchdogSec=60s
+
+[Install]
+WantedBy=multi-user.target
