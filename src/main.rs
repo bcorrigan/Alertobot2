@@ -7,6 +7,7 @@ extern crate tokio_stream;
 extern crate futures;
 extern crate regex;
 extern crate serde_regex;
+#[cfg(target_os = "linux")]
 extern crate sd_notify;
 
 mod config;
@@ -41,6 +42,7 @@ use futures::executor::block_on;
 
 use std::{thread, time};
 
+#[cfg(target_os = "linux")]
 use sd_notify::{notify, NotifyState};
 
 
@@ -87,10 +89,10 @@ async fn main() {
 
     let tbot = Bot::new(config.telegram.bot_token.to_string());
     let rules = &config.rules;
-    let duration = Duration::new(900, 0);
+    //let duration = Duration::new(900, 0);
 
     loop {
-        let fut = egg_mode::stream::filter()
+        let _ = egg_mode::stream::filter()
             .follow(&t)
             .language(&["en"])
             .start(&twauth.token)
@@ -162,16 +164,17 @@ async fn main() {
                     println!("──────────────────────────────────────");
                     //TODO check rules etc here and print to telegram
                 } else {
-                    println!("Unknown object:{:?}", m);
+                    println!("Ping :{:?}", m);
                 }
                 //notify systemd watchdog that we were active
-                let _ = notify(true, &[NotifyState::Watchdog]);
+                #[cfg(target_os = "linux")]
+                let _ = notify(false, &[NotifyState::Watchdog]);
                 futures::future::ok(())
-            }); //.await.map_err(|e| format!("There was a tweeter error: {}", e));
+            }).await.map_err(|e| format!("There was a tweeter error: {}", e));
 
-            if let Err(e) = timeout(duration, fut).await {
+            /*if let Err(e) = timeout(duration, fut).await {
                 println!("Timed out, restarting..")
-            }
+            }*/
 
             thread::sleep(time::Duration::from_millis(10000));
             twauth = Auth::load(&config).await;
