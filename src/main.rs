@@ -90,6 +90,8 @@ async fn main() {
     let tbot = Bot::new(config.telegram.bot_token.to_string());
     let rules = &config.rules;
     //let duration = Duration::new(900, 0);
+    let mut seen=0;
+    let mut sent=0;
 
     loop {
         let _ = egg_mode::stream::filter()
@@ -108,7 +110,8 @@ async fn main() {
                 }; */
 
                 if let StreamMessage::Tweet(tweet) = m {
-                    twitter::print_tweet(&tweet);
+                    //twitter::print_tweet(&tweet);
+                    seen = seen+1;
                     for rule in rules {
                         //we construct this because mocking it is a complete pain
                         let tweetinfo = TweetInfo {
@@ -136,9 +139,10 @@ async fn main() {
                                 */
                                 for chat in &rule.chats {
                                     //TODO I suppose should try not blocking here...
-                                    println!("RULE: Sending body to {}", chat.chat);
+                                    println!("MATCHED: Sending body to {}", chat.chat);
                                     let _ = block_on(tbot.send_message(Id(chat.chat), Text::with_html(format!("<b>{}</b>: {}" , tweet.user.as_ref().unwrap().screen_name, twitter::get_text(&tweet)))).is_web_page_preview_disabled(!webpage_preview)
                                                                     .call()).map_err(|e| format!("There was a telegram error: {}", e));
+                                    sent = sent+1;
                                 }
                                 if rule.include_images {
                                     thread::sleep(time::Duration::from_millis(1000));
@@ -149,7 +153,7 @@ async fn main() {
                                             let photo = PhotoOrVideo::Photo( Photo::with_url(entity.media_url_https.clone()) );
                                             photos.push(photo);
                                             //TODO videos and documents
-                                            println!("RULE: Appending media: {}", entity.media_url_https);
+                                            println!("Appending media: {}", entity.media_url_https);
                                         } 
                                         let media_group = MediaGroup::PhotosAndVideos(photos);
                                         for chat in &rule.chats {
@@ -163,12 +167,16 @@ async fn main() {
                     
                     println!("──────────────────────────────────────");
                     //TODO check rules etc here and print to telegram
-                } else {
+                } /*else {
                     println!("Ping :{:?}", m);
-                }
+                }*/
                 //notify systemd watchdog that we were active
                 #[cfg(target_os = "linux")]
-                let _ = notify(false, &[NotifyState::Watchdog]);
+                {
+                    let status = format!("Processed {} tweets, sent {}", seen, sent);
+                    let _ = notify(false, &[NotifyState::Watchdog]);
+                    let _ = notify(false, &[NotifyState::Status(&status)]);
+                }
                 futures::future::ok(())
             }).await.map_err(|e| format!("There was a tweeter error: {}", e));
 

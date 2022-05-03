@@ -55,14 +55,14 @@ const ALL_DAY_RANGE:Range = Range { start: 0, end: 23, excludes: None };
 impl Rule {
     pub fn matches(&self, twinfo:&TweetInfo) -> bool {
         if *twinfo.screen_name == self.name {
-            println!("RULE: testing rule for {}", self.name);
+            //println!("RULE: testing rule for {}", self.name);
             let active_range = match &self.active_hours {
                 Some(ranges) => {
                     let active_ranges:Vec<&Range> = ranges.into_iter().filter(|range| range.in_range(twinfo.hour)).collect();
-                    println!("RULE: Found {} active ranges for hour {}", active_ranges.len(), twinfo.hour);
+                    //println!("RULE: Found {} active ranges for hour {}", active_ranges.len(), twinfo.hour);
                     match active_ranges.get(0) {
                         Some(range) => *range,
-                        None => {println!("RULE: No active ranges, rule FALSE"); return false},
+                        None => {/*println!("RULE: No active ranges, rule FALSE");*/ return false},
                     }                    
                 },    
                 None => &ALL_DAY_RANGE
@@ -75,22 +75,22 @@ impl Rule {
 
             //No retweets of users we follow
             if twinfo.retweeted && twinfo.followed_users.contains(&twinfo.rtuser) { //TODO get ultimate user ID!
-                println!("RULE: Not doing a retweet of followed user, rule FALSE");
+                //println!("RULE: Not doing a retweet of followed user, rule FALSE");
                 return false;
             }
             if active_today {
-                println!("RULE: active today");
+                //println!("RULE: active today");
                 if !active_range.excludes_matches(&twinfo.text) {
-                    println!("RULE: no range excludes strings present");
+                    //println!("RULE: no range excludes strings present");
                     if self.includes.is_match(&twinfo.text) {
-                        println!("RULE: includes regex matches");
+                        //println!("RULE: includes regex matches");
                         return match &self.excludes {
-                            Some(regex) => {println!("RULE: range excludes match? rule {}", !regex.is_match(&twinfo.text)); !regex.is_match(&twinfo.text)},
-                            None => {println!("RULE: No range excludes to worry about, rule TRUE");true},
+                            Some(regex) => {/*println!("RULE: range excludes match? rule {}", !regex.is_match(&twinfo.text));*/ !regex.is_match(&twinfo.text)},
+                            None => {/*println!("RULE: No range excludes to worry about, rule TRUE");*/true},
                         };
-                    } else { println!("RULE: includes regex not matching. rule FALSE")}
-                } else { println!("RULE: range excludes regex matches. rule FALSE"); }
-            } else { println!("RULE: Inactive today. rule FALSE"); }
+                    }// else { println!("RULE: includes regex not matching. rule FALSE")}
+                } //else { println!("RULE: range excludes regex matches. rule FALSE"); }
+            } //else { println!("RULE: Inactive today. rule FALSE"); }
         }    
 
         false
