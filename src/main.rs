@@ -165,7 +165,7 @@ async fn main() {
                         }
                     }
                     
-                    println!("──────────────────────────────────────");
+                    //println!("──────────────────────────────────────");
                     //TODO check rules etc here and print to telegram
                 } /*else {
                     println!("Ping :{:?}", m);
